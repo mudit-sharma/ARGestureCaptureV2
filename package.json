@@ -1,0 +1,25 @@
+{
+  "name": "argesturecapturev2",
+  "version": "1.0.0",
+  "description": "User study site for AR Hand Gesture Capture for Interactive Data Analytics research project at Monash University.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lennemo09/ARGestureCaptureV2.git"
+  },
+  "author": "Len Luong",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lennemo09/ARGestureCaptureV2/issues"
+  },
+  "homepage": "https://github.com/lennemo09/ARGestureCaptureV2#readme",
+  "dependencies": {
+    "express": "^4.17.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}
