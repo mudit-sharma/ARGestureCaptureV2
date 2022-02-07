@@ -4,7 +4,7 @@
   "description": "User study site for AR Hand Gesture Capture for Interactive Data Analytics research project at Monash University.",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "nodemon server.js"
   },
   "repository": {
     "type": "git",
@@ -17,7 +17,8 @@
   },
   "homepage": "https://github.com/lennemo09/ARGestureCaptureV2#readme",
   "dependencies": {
-    "express": "^4.17.2"
+    "express": "^4.17.2",
+    "jquery": "^3.6.0"
   },
   "devDependencies": {
     "dotenv": "^10.0.0",
