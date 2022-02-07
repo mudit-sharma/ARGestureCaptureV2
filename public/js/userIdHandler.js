@@ -29,7 +29,7 @@ window.onload = function () {
 function cacheUserId() {
     let userIdField = document.getElementById("userIdField");
     localStorage.setItem('userId', userIdField.value);
-    console.log(`Cached user id: ${userIdField.value}`);
+    //console.log(`Cached user id: ${userIdField.value}`);
 }
 
 function finaliseUserId() {
@@ -37,12 +37,12 @@ function finaliseUserId() {
 
     /// If user did not input user ID:
     if (cachedUserId === null || cachedUserId === '') {
-        const anonId = makeID(8);
+        const anonId = "anon_" + makeID(8);
         localStorage.setItem('userIdAnon', anonId);
         localStorage.removeItem('userId');
-        console.log(`Anon ID generated: {anonId}`);
+        //console.log(`Anon ID generated: ${anonId}`);
     }
-    console.log(localStorage.getItem('userIdAnon'));
+    //console.log(localStorage.getItem('userIdAnon'));
 }
 
 function makeID(length) {

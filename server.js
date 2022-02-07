@@ -133,12 +133,12 @@ function JSONToCSVString(jsonData, isMediaPipeData) {
 // build csv file data directory with given string as its content.
 function buildFilesData(dirPath, responseData, apiName) {
     const operation = responseData.operation.toString().trim();
-    const datetime = responseData.datetime.toString().trim();
+    const recordingnumber = responseData.recordingnumber.toString().trim();
     let fileData = []
     console.log(responseData.handdata);
     for (const [key, value] of Object.entries(responseData.handdata)) {
-        const filePath = `${dirPath}#${operation}#${key}#${datetime}.csv`;
-        const csvData = JSONToCSVString(value, apiName.toLowerCase().includes("hands"));
+        const filePath = `${dirPath}/${operation}_${key}_${recordingnumber}.csv`;
+        const csvData = JSONToCSVString(value, true);
         fileData.push({path: filePath, api: apiName, data: csvData});
     }
     return fileData;

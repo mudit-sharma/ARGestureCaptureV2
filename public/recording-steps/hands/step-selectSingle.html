@@ -14,7 +14,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-    <script src="../../js/userIdHandler.js"></script>
+    <script src="../../js/userIdHandler.js"></script>    
+    <script src="../../js/recordingHandler.js"></script>
     
 </head>
 <body>
@@ -60,6 +61,12 @@
                 </span>
                 <span id="cachedUserId">
                     Anonymous
+                </span>
+                <br>
+                <span>
+                    Recorded gestures:
+                </span>                
+                <span id="recorded-data-selectSinglePoint">                    
                 </span>
                 <br><br>
                 <a id="recordButton" class="recordButton-inactive button-19" role="button" onclick="toggleRecording()">Record</a>           

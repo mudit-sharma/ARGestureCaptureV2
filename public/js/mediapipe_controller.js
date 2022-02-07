@@ -19,7 +19,7 @@ let buidInProcess = false;
 
 let drawHands = true;
 
-/////////////// Back-end communication /////////////
+///////////////////////////////////////////////////////// Back-end communication ///////////////////////////////////////////////////////
 var worker = new Worker('../../js/worker.js');
 function toggleRecording() {
   if ($("#recordButton") != null) {
@@ -53,7 +53,7 @@ function buildLog(actionName) {
       buidInProcess = true;
       let data = {
           operation: actionName,
-          datetime: getFormattedDateTime(new Date()),
+          recordingnumber: getRecordingCount(),
           handdata: {
               RHand: [],
               LHand: []
@@ -135,12 +135,13 @@ function stopLog(parsedData) {
     return;
   }
 
-  const dirrectoryName = `${parsedData.operation}/` + cachedUserId;
+  const directoryName = `${parsedData.operation}/` + cachedUserId;
 
-  $.post("/results/hands/", {dirName: dirrectoryName, data: parsedData}, function (data, status, jqXHR) {
+  $.post("/results/hands/", {dirName: directoryName, data: parsedData}, function (data, status, jqXHR) {
       if (status == 'success') {
         console.log(parsedData);
-        console.log("Data sent to server successfully!");
+        console.log("Data sent to server successfully!");        
+        addNewRecording();
       } else {
         console.log("Data sent to server failed.");
       }
@@ -175,7 +176,7 @@ function getFormattedDateTime(dt = Date){
       dt.getMinutes() + "-" + 
       dt.getSeconds();
 }
-//////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function toggleDrawHands(checkbox) {
   if(checkbox.checked){
