@@ -37,7 +37,7 @@ function toggleRecording() {
       $("#recordButton").addClass("recordButton-inactive");
       $("#recordButton").text("Record");
 
-      buildLog("Gesture Name");
+      buildLog($("#dataOverlay").attr('class'));
       currentState = states.IDLE;
       console.log("Stopped Recording!");
     }
@@ -135,7 +135,7 @@ function stopLog(parsedData) {
     return;
   }
 
-  const dirrectoryName = "gestureName/" + cachedUserId;
+  const dirrectoryName = `${parsedData.operation}/` + cachedUserId;
 
   $.post("/results/hands/", {dirName: dirrectoryName, data: parsedData}, function (data, status, jqXHR) {
       if (status == 'success') {
