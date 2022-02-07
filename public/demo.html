@@ -5,8 +5,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demo</title>
-    <link rel="stylesheet" href="style.css ">
+    <link rel="stylesheet" href="css/style.css ">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta charset="utf-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="topnav" id="myTopnav">
@@ -23,6 +30,25 @@
         
         <p>Demo steps here.</p>
     </div>
+
+    <div>
+        <div id="webgl_container">
+            <div id="videoContent">
+                <video class="input_video" style="display: none;"></video>
+                <div style="position: relative; width: 640px; height: 500px; float: left;">
+                    <canvas class="output_canvas" width="640px" height="500px" 
+                        style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
+                </div>
+            </div>
+            <div id="dataOverlay" class="data-selectSinglePoint" width="640px" height="500px"></div>
+        </div>
+    </div>
+
+    <script src="js/mediapipe_controller.js" type="module"></script>
+    <script src="js/three.js"></script>
+    <script src="js/THREE.MeshLine.js"></script>
+    <script src="js/orbitControl.js"></script>
+    <script src="js/dataVisualization.js"></script>
     
 </body>
 </html>

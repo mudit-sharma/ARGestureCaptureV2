@@ -5,8 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gesture Recording</title>
-    <link rel="stylesheet" href="style.css ">
+    <link rel="stylesheet" href="css/style.css ">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="js/userIdHandler.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="topnav" id="myTopnav">
@@ -21,8 +23,16 @@
     <div class="page-body">
         <h1>Gesture Recording</h1>
         
-        <p>Gesture Recording steps here.</p>
-    </div>
+        <p>Please enter your participant ID down below. This will solely be used to link your survey response to the gesture data. All responses are de-identified.</p>
+
+        <form id="userIdForm" onsubmit="cacheUserId()">
+            <input id="userIdField" name="userId" type="text">
+            <input type="submit" value="Submit">
+        </form>
+
+        <br>
+        <a class="button-19" role="button" href="/recording-steps/hands/step-selectSingle.html">Start</a>
+    </div>   
     
 </body>
 </html>
