@@ -31,3 +31,27 @@ function cacheUserId() {
     localStorage.setItem('userId', userIdField.value);
     console.log(`Cached user id: ${userIdField.value}`);
 }
+
+function finaliseUserId() {
+    let cachedUserId = localStorage.getItem('userId');
+
+    /// If user did not input user ID:
+    if (cachedUserId === null || cachedUserId === '') {
+        const anonId = makeID(8);
+        localStorage.setItem('userIdAnon', anonId);
+        localStorage.removeItem('userId');
+        console.log(`Anon ID generated: {anonId}`);
+    }
+    console.log(localStorage.getItem('userIdAnon'));
+}
+
+function makeID(length) {
+    var result           = '';
+    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * 
+ charactersLength));
+   }
+   return result;
+}
