@@ -30,6 +30,7 @@ function generateFileData(responseData, apiName) {
     const datetime = responseData.datetime.toString().trim();
     
     let fileData = [];
+    //console.dir(responseData);
     for (const [key, value] of Object.entries(responseData.handdata)) {
         const fileName = `${operation}#${key}#${datetime}.csv`;
         const csvData = JSONToCSVString(value, apiName.toLowerCase().includes("mediapipe"));

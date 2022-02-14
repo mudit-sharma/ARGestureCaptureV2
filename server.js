@@ -26,14 +26,40 @@ const appInfo = {
     description:'Web app for recording hand gestures',
 };
 
+// app.post('/results/hands/', (req, res) => {
+//     try {
+//         saveFileLocally(
+//             buildFilesData(
+//                 `results/hands/${req.body.dirName.toString().trim()}`, 
+//                 req.body.data, 
+//                 "mediapipe")
+//         );
+//         res.status(200);
+//     } catch (error) {
+//         console.log(error);
+//     }
+//     res.end(); // end the response
+// })
+
+// app.post('/results/fullbody/', (req, res) => {
+//     try {
+//         saveFileLocally(
+//             buildFilesData(
+//                 `results/fullbody/${req.body.dirName.toString().trim()}`, 
+//                 req.body.data, 
+//                 "mediapipe",
+//                 true)
+//         );
+//         res.status(200);
+//     } catch (error) {
+//         console.log(error);
+//     }
+//     res.end(); // end the response
+// })
+
 app.post('/results/hands/', (req, res) => {
     try {
-        saveFileLocally(
-            buildFilesData(
-                `results/hands/${req.body.dirName.toString().trim()}`, 
-                req.body.data, 
-                "hands")
-        );
+        saveJSON(`results/hands/${req.body.dirName.toString().trim()}`,req.body.data);
         res.status(200);
     } catch (error) {
         console.log(error);
@@ -42,9 +68,13 @@ app.post('/results/hands/', (req, res) => {
 })
 
 app.post('/results/fullbody/', (req, res) => {
-    console.log(req.body);
-    console.log("Full Body Data received.");
-    res.send('OK');
+    try {
+        saveJSON(`results/fullbody/${req.body.dirName.toString().trim()}`,req.body.data);
+        res.status(200);
+    } catch (error) {
+        console.log(error);
+    }
+    res.end(); // end the response
 })
 
 // Home page request/response
@@ -67,21 +97,6 @@ const pageInfo = [
     {key: 'mediapipe', value: 'MediaPipe'},
     {key: 'contact', value: 'Contact Us'},
 ];
-
-app.post('/mediapipe', function(req, res) {
-    try {
-        saveFileLocally(
-            buildFilesData(
-                `results/mediapipe/${req.body.dirName.toString().trim()}`, 
-                req.body.data, 
-                "hands")
-        );
-        res.status(200);
-    } catch (error) {
-        console.log(error);
-    }
-    res.end(); // end the response
-});
 
 // Available Gesture types(actions).
 const positionList = [
@@ -118,29 +133,51 @@ function JSONToCSVString(jsonData, isMediaPipeData) {
     for (let i = 0; i < jsonData.length; i++) {
         sampleData += `${jsonData[i].time}`;
         // console.log(`i: ${i}`);
-        for (let j = 0; j < jsonData[i].keypoints.length; j++) {
-            if (jsonData[i].keypoints.length == 21)
-                if (isMediaPipeData)
-                    sampleData += `,${jsonData[i].keypoints[j].x}, ${jsonData[i].keypoints[j].y}, ${'z' in jsonData[i].keypoints[j] ? jsonData[i].keypoints[j].z : '0'}`;
-                else if (jsonData[i].keypoints[j].length == 3)
-                    sampleData += `,${jsonData[i].keypoints[j][0]}, ${jsonData[i].keypoints[j][1]}, ${jsonData[i].keypoints[j][2]}`;
+        if (jsonData[i].keypoints) {
+            for (let j = 0; j < jsonData[i].keypoints.length; j++) {
+                if (jsonData[i].keypoints.length == 21)
+                    if (isMediaPipeData)
+                        sampleData += `,${jsonData[i].keypoints[j].x}, ${jsonData[i].keypoints[j].y}, ${'z' in jsonData[i].keypoints[j] ? jsonData[i].keypoints[j].z : '0'}`;
+                    else if (jsonData[i].keypoints[j].length == 3)
+                        sampleData += `,${jsonData[i].keypoints[j][0]}, ${jsonData[i].keypoints[j][1]}, ${jsonData[i].keypoints[j][2]}`;
+            }
         }
         sampleData += "\n";
     }
     return sampleData;
 }
 
-// build csv file data directory with given string as its content.
-function buildFilesData(dirPath, responseData, apiName) {
+function saveJSON(dirPath, responseData) {
     const operation = responseData.operation.toString().trim();
     const recordingnumber = responseData.recordingnumber.toString().trim();
-    let fileData = []
-    console.log(responseData.handdata);
-    for (const [key, value] of Object.entries(responseData.handdata)) {
+    fileData = JSON.stringify(responseData, null, 2);
+    fs.writeFile(`${dirPath}/${operation}_${recordingnumber}_JSON.json`, fileData, function(err) {
+        if (err) {
+            console.log(err);
+        }
+        console.log("The new file was created on server pc: " + `${dirPath}/${operation}_${recordingnumber}_JSON.json`);
+    });
+}
+
+// build csv file data directory with given string as its content.
+function buildFilesData(dirPath, responseData, apiName, isFullbody=false) {
+    const operation = responseData.operation.toString().trim();
+    const recordingnumber = responseData.recordingnumber.toString().trim();
+    let fileData = [];
+    let rawData;
+
+    if (!isFullbody) {
+        rawData = responseData.handdata;
+    } else {
+        rawData = responseData.bodydata;
+    }
+    
+    for (const [key, value] of Object.entries(rawData)) {
         const filePath = `${dirPath}/${operation}_${key}_${recordingnumber}.csv`;
         const csvData = JSONToCSVString(value, true);
         fileData.push({path: filePath, api: apiName, data: csvData});
     }
+    
     return fileData;
 }
 

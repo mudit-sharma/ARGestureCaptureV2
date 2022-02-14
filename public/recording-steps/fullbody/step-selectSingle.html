@@ -15,6 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.js" crossorigin="anonymous"></script>
     <script src="../../js/userIdHandler.js"></script>
+    <script src="../../js/recordingHandler.js"></script>
 </head>
 <body>
     <div class="topnav" id="myTopnav">
@@ -27,22 +28,13 @@
     </div>
     
     <div class="page-body">
-        <h1>Select single point</h1>
+        <h1>Select single point</h1>        
         
         <p>Interaction description here.</p>
 
-        <span>
-            Recording under participant ID:
-        </span>
-        <span id="cachedUserId">
-            Anonymous
-        </span>
-
-        <br>        
-
         <div style="display: inline-block;">
             <label>
-                <input type="checkbox" id="toggleDrawHandsBox" onclick="toggleDrawHands(this)" checked>
+                <input type="checkbox" id="toggleDrawHandsBox" onclick="toggleDrawSkeleton(this)" checked>
                 Show body skeleton
             </label>
             <label>
@@ -51,7 +43,7 @@
             </label>
         </div>
         
-        <div>
+        <div style="display:grid; grid-template-columns:700px 500px;">
             <div id="webgl_container">
                 <div id="videoContent">
                     <video class="input_video" style="display: none;"></video>
@@ -61,7 +53,24 @@
                     </div>
                 </div>
                 <div id="dataOverlay" class="data-selectSinglePoint" width="640px" height="500px"></div>
-            </div>            
+            </div>
+            <div>
+                <span>
+                    Recording under participant ID:
+                </span>
+                <span id="cachedUserId">
+                    Anonymous
+                </span>
+                <br>
+                <span>
+                    Recorded gestures:
+                </span>                
+                <span id="recorded-data-selectSinglePoint">                    
+                </span>
+                <br><br>
+                <a id="recordButton" class="recordButton-inactive button-19" role="button" onclick="toggleRecording()">Record</a>           
+            </div>
+            
         </div>    
     </div>
 

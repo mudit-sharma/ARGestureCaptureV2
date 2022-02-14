@@ -17,7 +17,7 @@ let intervalID = null;
 const months = ["JAN", "FEB", "MAR","APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 let buidInProcess = false;
 
-let drawHands = true;
+let drawSkeleton = true;
 
 ///////////////////////////////////////////////////////// Back-end communication ///////////////////////////////////////////////////////
 var worker = new Worker('../../js/worker.js');
@@ -61,7 +61,7 @@ function buildLog(actionName) {
       };
       for (let i = 0; i < predictionStack.length; i++) {
           if (predictionStack[i][1].length == 2 && predictionStack[i][2].length == 2) {
-              // swaped hand indexes due to mirrored canvas projection.
+              // Swapped hand indices due to mirrored canvas projection.
               const lindex = (predictionStack[i][1][0].label == "Left") ? 1 : 0;
               const rindex = (predictionStack[i][1][0].label == "Right") ? 1 : 0;
               data.handdata.LHand.push({
@@ -74,7 +74,7 @@ function buildLog(actionName) {
               });
           } else if (predictionStack[i][1].length == 1 && predictionStack[i][2].length == 1) {
               if (predictionStack[i][1][0].label == "Left") {
-                  // swaped hand data due to mirrored canvas projection.
+                  // Swapped hand indices due to mirrored canvas projection.
                   data.handdata.RHand.push({
                       time: predictionStack[i][0],
                       keypoints: predictionStack[i][2][0]
@@ -84,7 +84,7 @@ function buildLog(actionName) {
                       keypoints: [NaN]
                   });
               } else if (predictionStack[i][1][0].label == "Right") {
-                  // swaped hand data due to mirrored canvas projection.
+                  // Swapped hand indices due to mirrored canvas projection.
                   data.handdata.RHand.push({
                       time: predictionStack[i][0],
                       keypoints: [NaN]
@@ -139,7 +139,6 @@ function stopLog(parsedData) {
 
   $.post("/results/hands/", {dirName: directoryName, data: parsedData}, function (data, status, jqXHR) {
       if (status == 'success') {
-        console.log(parsedData);
         console.log("Data sent to server successfully!");        
         addNewRecording();
       } else {
@@ -178,12 +177,12 @@ function getFormattedDateTime(dt = Date){
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function toggleDrawHands(checkbox) {
+function toggleDrawSkeleton(checkbox) {
   if(checkbox.checked){
-    drawHands = true;
+    drawSkeleton = true;
     console.log("Enabled hands skeleton");
   } else {
-    drawHands = false;
+    drawSkeleton = false;
     console.log("Disabled hands skeleton");
   }
 }
@@ -197,7 +196,7 @@ function toggleDrawData(checkbox) {
     console.log("Disabled reference animation");
   }
 }
-window.toggleDrawHands = toggleDrawHands;
+window.toggleDrawSkeleton = toggleDrawSkeleton;
 window.toggleDrawData = toggleDrawData;
 
 // Callback of API, called when hand is detected.
@@ -213,7 +212,8 @@ function onResults(results) {
             predictionStack.push([elapsedTime, results.multiHandedness, results.multiHandLandmarks]);
         }
         // drawing points on hand
-        if (drawHands) {
+        if (drawSkeleton) {
+          //console.dir(results.multiHandLandmarks);
           for (const landmarks of results.multiHandLandmarks) {
             drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS,
                             {color: '#FFFF00', lineWidth: 3});

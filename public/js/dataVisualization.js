@@ -494,8 +494,8 @@ function animateSelectSinglePoint() {
             changeOutlinePointColor(selectedPointsGroup.children[i], 0xffffff);
         }
 
-        console.log(globalFramesCount);
-        console.log(progressBar.scale.x);
+        // console.log(globalFramesCount);
+        // console.log(progressBar.scale.x);
         selectionHighlightFrames = 0;
         deselectedFrames = 0;
         globalFramesCount = 0;
