@@ -11,13 +11,20 @@ replayRenderer.setSize($(replayContainer).width(), $(replayContainer).height());
 replayContainer.appendChild( replayRenderer.domElement );
 replayContainer.style.pointerEvents = "none";
 
-const replayCamera = new THREE.OrthographicCamera(0, $(container).width(), 0, -$(container).height(), 1, 1000 );
+const replayCamera = new THREE.OrthographicCamera(0, $(replayContainer).width(), 0, -$(replayContainer).height(), 1, 1000 );
 replayCamera.position.z = 10;
 replayScene.add( replayCamera );
 
-var replayResolution = new THREE.Vector2( $(container).width(), $(container).height() );
+var replayResolution = new THREE.Vector2( $(replayContainer).width(), $(replayContainer).height() );
 
 var jointsGroup = new THREE.Group();
+var leftHandJointsGroup = new THREE.Group();
+var leftHandLinesGroup = new THREE.Group();
+var rightHandJointsGroup = new THREE.Group();
+var rightHandLinesGroup = new THREE.Group();
+var bodyJointsGroup = new THREE.Group();
+var bodyLinesGroup = new THREE.Group();
+
 var currentData = [];
 
 let replayClock = new THREE.Clock();
@@ -69,7 +76,7 @@ function drawLine(points) {
     
     const lineMesh = new THREE.Mesh(line, lineMat);
 
-    jointsGroup.add( lineMesh )
+    return lineMesh;
 }
 
 function plotPoint(x=0, y=0, z=0, radius = 1.0) {
@@ -78,7 +85,77 @@ function plotPoint(x=0, y=0, z=0, radius = 1.0) {
     sphere.position.x = x;
     sphere.position.y = y;
     sphere.position.z = z;
-    jointsGroup.add( sphere );
+    
+    return sphere;
+}
+
+function initialiseHandJointsGeometry() {
+    for (let i = 0; i < 21; i++) {
+        let newJointL = plotPoint(-1,-1,0,7);
+        let newJointR = plotPoint(-1,-1,0,7);
+
+        leftHandJointsGroup.add(newJointL);
+        rightHandJointsGroup.add(newJointR);
+    }
+
+    for (let i = 0; i < handJointPairs.length; i++) {
+        let newLineL = drawLine([-1,-1,0,-1,-1,0]);
+        let newLineR = drawLine([-1,-1,0,-1,-1,0]);
+
+        leftHandLinesGroup.add(newLineL);
+        rightHandLinesGroup.add(newLineR);
+    }
+    jointsGroup.add(leftHandJointsGroup);
+    jointsGroup.add(rightHandJointsGroup);
+    jointsGroup.add(leftHandLinesGroup);
+    jointsGroup.add(rightHandLinesGroup);
+}
+
+function updateHandsGeometry(handJoints) {
+    if (handJoints.length === 0 || handJoints.Lkeypoints.length === 0 && handJoints.Rkeypoints.length === 0) return;
+    var LHand = handJoints.Lkeypoints;
+    var RHand = handJoints.Rkeypoints;
+
+    for (let i = 0; i < 21; i++) {
+        //console.log("a joint");
+        var LJoint = LHand[i];
+        var RJoint = RHand[i];
+
+        if (LJoint) {
+            var LWorldPos = screenSpaceToWorld(LJoint.x, LJoint.y);
+            leftHandJointsGroup.children[i].position.x = LWorldPos.x;
+            leftHandJointsGroup.children[i].position.y = LWorldPos.y;
+        }
+
+        if (RJoint) {
+            var RWorldPos = screenSpaceToWorld(RJoint.x, RJoint.y);
+            rightHandJointsGroup.children[i].position.x = RWorldPos.x;
+            rightHandJointsGroup.children[i].position.y = RWorldPos.y;
+        }
+    }
+
+    for (let i = 0; i < handJointPairs.length; i++) {
+        var pair = handJointPairs[i]
+
+        if (LHand.length > 0) {
+            var LStartPoint = LHand[pair[0]];
+            var LEndPoint = LHand[pair[1]];
+
+            var LLineStart = screenSpaceToWorld(LStartPoint.x, LStartPoint.y);
+            var LLineEnd = screenSpaceToWorld(LEndPoint.x, LEndPoint.y);
+
+            leftHandLinesGroup.children[i].geometry.setPoints([LLineStart.x,LLineStart.y,0,LLineEnd.x,LLineEnd.y,0]);
+        }
+        if (RHand.length > 0) {
+            var RStartPoint = RHand[pair[0]];
+            var REndPoint = RHand[pair[1]];
+
+            var RLineStart = screenSpaceToWorld(RStartPoint.x, RStartPoint.y);
+            var RLineEnd = screenSpaceToWorld(REndPoint.x, REndPoint.y);
+
+            rightHandLinesGroup.children[i].geometry.setPoints([RLineStart.x,RLineStart.y,0,RLineEnd.x,RLineEnd.y,0]);
+        }
+    }
 }
 
 function drawHand(handJoints) {
@@ -147,13 +224,12 @@ function animateHandsReplay() {
 
     if (replayDelta  > replayInterval) {
         if (currentDataIndex === 0) {
-            drawHand(currentData[0]);
+            updateHandsGeometry(currentData[0]);
             currentDataIndex++;
         } else if (currentDataIndex >= currentData.length) {
-            //clearReplayCanvas();
+            clearReplayCanvas();
             return;
         } else {
-            clearGroup(jointsGroup);
             currentTime = replayClock.getElapsedTime() * 1000;
             var currentHands = currentData[currentDataIndex];
             
@@ -164,7 +240,7 @@ function animateHandsReplay() {
     
             if (elapsedTime > currentHands.time) {
                 //clearReplayCanvas();
-                drawHand(currentHands);
+                updateHandsGeometry(currentHands);
                 currentDataIndex++;
             }
         }
@@ -172,21 +248,29 @@ function animateHandsReplay() {
     }
     replayRenderer.render(replayScene, replayCamera);
 }
+
+function startHandsReplayAnimation() {
+    clearReplayCanvas()
+    replayScene.add(jointsGroup);
+    animateHandsReplay()
+}
+
 function createHandJointsGeometry(handJoints) {
     //clearReplayCanvas();
     if (handJoints.length === 0) return;
+    initialiseHandJointsGeometry();
 
     startTime = replayClock.getElapsedTime() * 1000;
     currentTime = startTime;
     currentData = handJoints;
     timeOffset = handJoints[0].time;    
 
-    replayScene.add(jointsGroup);
-    animateHandsReplay();
+    startHandsReplayAnimation();
 }
 
 function clearReplayCanvas() {
     clearGroup(replayScene);
+    replayRenderer.render(replayScene, replayCamera);
 }
 
 window.createHandJointsGeometry = createHandJointsGeometry;
