@@ -5,6 +5,13 @@
   z-index: 8;    /* position this canvas at bottom of the other one */
 }
 
+#replayOverlay {
+  position: absolute;
+  width: 640px; 
+  height: 500px;
+  z-index: 9;      /* position this canvas on top of the other one */
+}
+
 #dataOverlay {
   position: absolute;
   width: 640px; 

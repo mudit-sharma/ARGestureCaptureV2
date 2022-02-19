@@ -2,7 +2,7 @@ let dataElement;
 let recordedCount;
 let recordedCounterSpan;
 
-window.onload = function () {
+document.addEventListener("DOMContentLoaded", function () {
     dataElement = $("#dataOverlay");
     recordedCount = localStorage.getItem("recorded-"+ dataElement.attr('class'));
     recordedCounterSpan = document.getElementById("recorded-"+dataElement.attr('class'));
@@ -14,7 +14,7 @@ window.onload = function () {
     } else {
         recordedCounterSpan.textContent = recordedCount;
     }
-}
+});
 
 function addNewRecording() {
     recordedCount++;
@@ -29,5 +29,5 @@ function removeAllRecordings() {
 }
 
 function getRecordingCount() {
-    return recordedCount;
+    return (recordedCount) ? recordedCount : 0;
 }

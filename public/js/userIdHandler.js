@@ -1,5 +1,5 @@
 
-window.onload = function () {
+document.addEventListener("DOMContentLoaded", function () {
     let cachedUserId = localStorage.getItem('userId');
     let userIdForm = document.getElementById("userIdForm");
     
@@ -24,7 +24,7 @@ window.onload = function () {
             cachedUserIdSpan.textContent = "Anonymous";
         }
     }
-}
+});
 
 function cacheUserId() {
     let userIdField = document.getElementById("userIdField");

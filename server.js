@@ -151,6 +151,10 @@ function saveJSON(dirPath, responseData) {
     const operation = responseData.operation.toString().trim();
     const recordingnumber = responseData.recordingnumber.toString().trim();
     fileData = JSON.stringify(responseData, null, 2);
+
+    if(!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+    }
     fs.writeFile(`${dirPath}/${operation}_${recordingnumber}_JSON.json`, fileData, function(err) {
         if (err) {
             console.log(err);

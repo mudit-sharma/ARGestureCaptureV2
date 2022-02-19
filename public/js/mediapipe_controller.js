@@ -12,7 +12,7 @@ let currentState = states.IDLE;
 let initTimer = new Date();
 let sampleData = "";
 let predictionStack = [];
-let recordDataStack = [];
+let handJoints = [];
 let intervalID = null;
 const months = ["JAN", "FEB", "MAR","APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 let buidInProcess = false;
@@ -54,7 +54,7 @@ function buildLog(actionName) {
       let data = {
           operation: actionName,
           recordingnumber: getRecordingCount(),
-          handdata: {
+          bodydata: {
               RHand: [],
               LHand: []
           }
@@ -64,35 +64,27 @@ function buildLog(actionName) {
               // Swapped hand indices due to mirrored canvas projection.
               const lindex = (predictionStack[i][1][0].label == "Left") ? 1 : 0;
               const rindex = (predictionStack[i][1][0].label == "Right") ? 1 : 0;
-              data.handdata.LHand.push({
-                  time: predictionStack[i][0],
-                  keypoints: predictionStack[i][2][lindex]
-              });
-              data.handdata.RHand.push({
-                  time: predictionStack[i][0],
-                  keypoints: predictionStack[i][2][rindex]
-              });
+
+              const LHandData = {time: predictionStack[i][0],keypoints: predictionStack[i][2][lindex]};
+              const RHandData = {time: predictionStack[i][0],keypoints: predictionStack[i][2][rindex]};
+              data.bodydata.LHand.push(LHandData);
+              data.bodydata.RHand.push(RHandData);
+              handJoints.push({time: predictionStack[i][0], Lkeypoints: predictionStack[i][2][lindex], Rkeypoints: predictionStack[i][2][rindex]});
           } else if (predictionStack[i][1].length == 1 && predictionStack[i][2].length == 1) {
               if (predictionStack[i][1][0].label == "Left") {
                   // Swapped hand indices due to mirrored canvas projection.
-                  data.handdata.RHand.push({
-                      time: predictionStack[i][0],
-                      keypoints: predictionStack[i][2][0]
-                  });
-                  data.handdata.LHand.push({
-                      time: predictionStack[i][0],
-                      keypoints: [NaN]
-                  });
+                  const RHandData = {time: predictionStack[i][0],keypoints: predictionStack[i][2][0]};
+                  const LHandData = {time: predictionStack[i][0],keypoints: [NaN]};
+                  data.bodydata.RHand.push(RHandData);                  
+                  data.bodydata.LHand.push(LHandData);
+                  handJoints.push({time: predictionStack[i][0], Lkeypoints: [], Rkeypoints: predictionStack[i][2][0]});
               } else if (predictionStack[i][1][0].label == "Right") {
                   // Swapped hand indices due to mirrored canvas projection.
-                  data.handdata.RHand.push({
-                      time: predictionStack[i][0],
-                      keypoints: [NaN]
-                  });
-                  data.handdata.LHand.push({
-                  time: predictionStack[i][0],
-                  keypoints: predictionStack[i][2][0]
-              });
+                  const RHandData = {time: predictionStack[i][0],keypoints: [NaN]};
+                  const LHandData = {time: predictionStack[i][0],keypoints: predictionStack[i][2][0]};
+                  data.bodydata.RHand.push(RHandData);
+                  data.bodydata.LHand.push(LHandData);
+                  handJoints.push({time: predictionStack[i][0], Lkeypoints: predictionStack[i][2][0], Rkeypoints: []});
               }
           }
       }
@@ -130,7 +122,7 @@ function stopLog(parsedData) {
     cachedUserId = localStorage.getItem('userIdAnon');
   }
 
-  if (parsedData.handdata.LHand.length <= 0 && parsedData.handdata.RHand.length <= 0) {
+  if (parsedData.bodydata.LHand.length <= 0 && parsedData.bodydata.RHand.length <= 0) {
     console.log('There are no data in recorded clip to save!');
     return;
   }
@@ -141,6 +133,8 @@ function stopLog(parsedData) {
       if (status == 'success') {
         console.log("Data sent to server successfully!");        
         addNewRecording();
+        createHandJointsGeometry(handJoints);
+        handJoints = [];
       } else {
         console.log("Data sent to server failed.");
       }

@@ -1,0 +1,84 @@
+
+procedure replayGesture(): // This is called every frame update
+	startTime = getCurrentTime()
+
+	for each frame update:
+		elapsedTime = getCurrentTime() - startTime 
+		if elapsedTime < nextTimeEntry:
+			do nothing
+		else:
+			clear canvas
+			for each jointSet in data.bodydata: // Is either LHand or RHand or Body
+				for each joint:
+					drawJoint(joint.xyz)
+				if jointSet is Hand:
+					drawJointConnections(jointSet, isHands=true)
+				else jointSet is Body:
+					drawJointConnections(jointSet, isHands=false)
+
+procedure drawJoint(joint.xyz):
+	// x, y is normalised to (0,1) in screen space with top-left origin
+	// Only displaying 2D projection to screenspace of gesture, ignore z
+	
+	realX = x * screenWidth
+	realY = -y * screenHeight // We flip y because its upside down
+	
+	draw point (realX,realY) with Three.JS 
+
+
+procedure drawHandJointConnections(jointSet, isHands):
+	// Use https://google.github.io/mediapipe/solutions/hands.html and
+	// https://google.github.io/mediapipe/solutions/pose.html
+	// to draw lines between 2 givens points
+	
+	if (isHands):
+		// For hands the lines are:
+		jointPairs = {
+			0-1, 1-2, 2-3, 3-4,
+			0-5, 5-6, 6-7, 7,8,
+			5-9, 9-10, 10-11, 11-12,
+			9-13, 13-14, 14-15, 15-16,
+			13-17, 17-18, 18-19, 19-20,
+			0-17
+		}
+	else:
+		// For body (holistic-pose), we ignore joints 0-10 as we don't need facial data,
+		// the lines are:
+		jointPairs = {
+			11-12, 
+			12-14, 14-16, 16-18, 16-20, 16-22, 18-20,
+			11-13, 13-15, 15-21, 15-17, 15-19, 17-19,
+			11-23, 12-24, 23-14,
+			23-25, 25-27, 27-29, 27-31, 29-31
+			24-26, 26-28, 28-30, 28-32, 30-32
+		}
+		
+
+	for each pair in jointPairs:
+		lineStart = pair[0]
+		lineEnd = pair[1]
+		draw line (lineStart, lineEnd) with Three.JS
+
+// Animation pseudocode
+const date = new Date();
+const startTime = date.getTime();
+var currentTime = startTime;
+const timeOffset = handJoints[0].time;
+
+currentDataIndex = 0;
+
+func animate() {	
+	if (currentDataIndex === 0) {
+		drawJoints(handJoints[0]);
+		currentDataIndex++;
+	} else {
+		currentTime = date.getTime();		
+		elapsedTime = (currentTime - startTime) + timeOffset;
+		
+		if (elapsedTime > handJoints[currentDataIndex].time) {
+			clearCanvas();
+			drawJoints(handJoints[0]);
+			currentDataIndex++;
+		}
+	}	
+}
