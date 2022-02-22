@@ -26,7 +26,9 @@ var bodyJointsGroup = new THREE.Group();
 var bodyLinesGroup = new THREE.Group();
 
 var currentData = [];
+var currentBodyData = [];
 
+let replayEnabled = true;
 let replayClock = new THREE.Clock();
 let replayDelta = 0;
 // 30 fps
@@ -37,6 +39,7 @@ var currentTime;
 var elapsedTime;
 var timeOffset;
 var currentDataIndex = 0;
+var animationFrameId;
 
 const pointMat = new THREE.MeshBasicMaterial( {color: 0xff0000} );
 
@@ -58,6 +61,15 @@ const handJointPairs = [
     [0,17]
 ]
 
+const bodyJointPairs = [
+    [11,12], 
+    [12,14], [14,16], [16,18], [16,20], [16,22], [18,20],
+    [11,13], [13,15], [15,21], [15,17], [15,19], [17,19],
+    [11,23], [12,24], [23,24],
+    [23,25], [25,27], [27,29], [27,31], [29,31],
+    [24,26], [26,28], [28,30], [28,32], [30,32]
+]
+
 function clearGroup(group) {
     for (var i = group.children.length - 1; i >= 0; i--) {
         group.remove(group.children[i]);
@@ -70,18 +82,20 @@ function screenSpaceToWorld(x,y) {
     return {x: newX, y: newY};
 }
 
-function drawLine(points) {
+function drawLine(points,color=0xffff00) {
     const line = new MeshLine();
     line.setPoints(points);
     
     const lineMesh = new THREE.Mesh(line, lineMat);
+    lineMesh.material.color.setHex(color);
 
     return lineMesh;
 }
 
-function plotPoint(x=0, y=0, z=0, radius = 1.0) {
+function plotPoint(x=0, y=0, z=0, radius = 1.0, color=0xff0000) {
     const geometry = new THREE.SphereGeometry( radius, 32, 32 );
     const sphere = new THREE.Mesh( geometry, pointMat );
+    sphere.material.color.setHex(color);
     sphere.position.x = x;
     sphere.position.y = y;
     sphere.position.z = z;
@@ -111,26 +125,90 @@ function initialiseHandJointsGeometry() {
     jointsGroup.add(rightHandLinesGroup);
 }
 
+function initialiseFullBodyJointsGeometry() {
+    initialiseHandJointsGeometry();
+
+    for (let i = 0; i < 33; i++) {
+        let newBodyJoint = plotPoint(-1,-1,0,7);
+        bodyJointsGroup.add(newBodyJoint);
+    }
+
+    for (let i = 0; i < bodyJointPairs.length; i++) {
+        let newBodyLine = drawLine([-1,-1,0,-1,-1,0]);
+
+        bodyLinesGroup.add(newBodyLine);
+    }
+    jointsGroup.add(bodyJointsGroup);
+    jointsGroup.add(bodyLinesGroup);
+}
+
+function resetHandGeometry(handIndex=0) {
+    // handIndex: 0 for left hand, 1 for right hand, 2 for both hands
+    switch (handIndex) {
+        case 0: // Reset left hand
+            for (let i = 0; i < 21; i++) {
+                leftHandJointsGroup.children[i].position.x = -1;
+                leftHandJointsGroup.children[i].position.y = -1;
+            }
+
+            for (let i = 0; i < handJointPairs.length; i++) {
+                leftHandLinesGroup.children[i].geometry.setPoints([-1,-1,0,-1,-1,0]);
+            }
+            break;
+        case 1: // Reset right hand
+            for (let i = 0; i < 21; i++) {
+                rightHandJointsGroup.children[i].position.x = -1;
+                rightHandJointsGroup.children[i].position.y = -1;
+            }
+
+            for (let i = 0; i < handJointPairs.length; i++) {
+                rightHandLinesGroup.children[i].geometry.setPoints([-1,-1,0,-1,-1,0]);
+            }
+            break;
+        case 2: // Reset both hands
+            for (let i = 0; i < 21; i++) {
+                leftHandJointsGroup.children[i].position.x = -1;
+                leftHandJointsGroup.children[i].position.y = -1;
+                rightHandJointsGroup.children[i].position.x = -1;
+                rightHandJointsGroup.children[i].position.y = -1;
+            }
+            for (let i = 0; i < handJointPairs.length; i++) {
+                leftHandLinesGroup.children[i].geometry.setPoints([-1,-1,0,-1,-1,0]);
+                rightHandLinesGroup.children[i].geometry.setPoints([-1,-1,0,-1,-1,0]);
+            }
+            break;
+    }
+}
+
 function updateHandsGeometry(handJoints) {
-    if (handJoints.length === 0 || handJoints.Lkeypoints.length === 0 && handJoints.Rkeypoints.length === 0) return;
+    if (handJoints.length === 0 || handJoints.Lkeypoints.length === 0 && handJoints.Rkeypoints.length === 0) {
+        resetHandGeometry(2);
+        return
+    };
     var LHand = handJoints.Lkeypoints;
     var RHand = handJoints.Rkeypoints;
 
     for (let i = 0; i < 21; i++) {
         //console.log("a joint");
-        var LJoint = LHand[i];
-        var RJoint = RHand[i];
-
-        if (LJoint) {
-            var LWorldPos = screenSpaceToWorld(LJoint.x, LJoint.y);
-            leftHandJointsGroup.children[i].position.x = LWorldPos.x;
-            leftHandJointsGroup.children[i].position.y = LWorldPos.y;
+        if (LHand) {
+            var LJoint = LHand[i];
+            if (LJoint) {
+                var LWorldPos = screenSpaceToWorld(LJoint.x, LJoint.y);
+                leftHandJointsGroup.children[i].position.x = LWorldPos.x;
+                leftHandJointsGroup.children[i].position.y = LWorldPos.y;
+            }    
+        } else {
+            resetHandGeometry(0);
         }
-
-        if (RJoint) {
-            var RWorldPos = screenSpaceToWorld(RJoint.x, RJoint.y);
-            rightHandJointsGroup.children[i].position.x = RWorldPos.x;
-            rightHandJointsGroup.children[i].position.y = RWorldPos.y;
+        if (RHand) {
+            var RJoint = RHand[i];
+            if (RJoint) {
+                var RWorldPos = screenSpaceToWorld(RJoint.x, RJoint.y);
+                rightHandJointsGroup.children[i].position.x = RWorldPos.x;
+                rightHandJointsGroup.children[i].position.y = RWorldPos.y;
+            }
+        } else {
+            resetHandGeometry(1);
         }
     }
 
@@ -154,6 +232,37 @@ function updateHandsGeometry(handJoints) {
             var RLineEnd = screenSpaceToWorld(REndPoint.x, REndPoint.y);
 
             rightHandLinesGroup.children[i].geometry.setPoints([RLineStart.x,RLineStart.y,0,RLineEnd.x,RLineEnd.y,0]);
+        }
+    }
+}
+
+function updateFullBodyGeometry(bodyJoints) {
+    updateHandsGeometry({Lkeypoints: (bodyJoints.Lkeypoints ? bodyJoints.Lkeypoints : []), Rkeypoints: (bodyJoints.Rkeypoints ? bodyJoints.Rkeypoints : [])});
+
+    if (!bodyJoints.Bodykeypoints || bodyJoints.Bodykeypoints.length === 0) return;
+
+    var bodyPoints = bodyJoints.Bodykeypoints;
+
+    for (let i = 11; i < 33; i++) {
+        var bodyPoint = bodyPoints[i];
+        if (bodyPoint) {
+            var worldPos = screenSpaceToWorld(bodyPoint.x, bodyPoint.y);
+            bodyJointsGroup.children[i].position.x = worldPos.x;
+            bodyJointsGroup.children[i].position.y = worldPos.y;
+        }
+    }
+
+    for (let i = 0; i < bodyJointPairs.length; i++) {
+        var pair = bodyJointPairs[i];
+
+        if (bodyPoints.length > 0) {
+            var startPoint = bodyPoints[pair[0]];
+            var endPoint = bodyPoints[pair[1]];
+
+            var lineStart = screenSpaceToWorld(startPoint.x, startPoint.y);
+            var lineEnd = screenSpaceToWorld(endPoint.x, endPoint.y);
+
+            bodyLinesGroup.children[i].geometry.setPoints([lineStart.x,lineStart.y,0,lineEnd.x,lineEnd.y,0])
         }
     }
 }
@@ -204,40 +313,28 @@ function drawHand(handJoints) {
         }
     }
 }
-// if (currentDataIndex === 0) {
-//     drawJoints(handJoints[0]);
-//     currentDataIndex++;
-// } else {
-//     currentTime = date.getTime();		
-//     elapsedTime = (currentTime - startTime) + timeOffset;
-    
-//     if (elapsedTime > handJoints[currentDataIndex].time) {
-//         clearCanvas();
-//         drawJoints(handJoints[0]);
-//         currentDataIndex++;
-//     }
-// }	
 
 function animateHandsReplay() {
-    requestAnimationFrame( animateHandsReplay );
+    animationFrameId = requestAnimationFrame( animateHandsReplay );
     replayDelta += replayClock.getDelta();
+
+    if (!replayEnabled) {
+        cancelAnimationFrame( animationFrameId );
+        return;
+    }
 
     if (replayDelta  > replayInterval) {
         if (currentDataIndex === 0) {
             updateHandsGeometry(currentData[0]);
             currentDataIndex++;
         } else if (currentDataIndex >= currentData.length) {
-            clearReplayCanvas();
-            return;
+            currentDataIndex = 0;
+            startTime = replayClock.getElapsedTime() * 1000;
         } else {
             currentTime = replayClock.getElapsedTime() * 1000;
             var currentHands = currentData[currentDataIndex];
             
             elapsedTime = (currentTime - startTime) + timeOffset;
-            // console.log(`Current time: ${currentTime}, Start time: ${startTime}, Time offset ${timeOffset}`)
-            // console.log(`Index: ${currentDataIndex}, Elapsed time: ${elapsedTime}, Current hands time ${currentHands.time}`)
-            // console.dir(currentHands);
-    
             if (elapsedTime > currentHands.time) {
                 //clearReplayCanvas();
                 updateHandsGeometry(currentHands);
@@ -249,23 +346,80 @@ function animateHandsReplay() {
     replayRenderer.render(replayScene, replayCamera);
 }
 
+function animateFullBodyReplay() {
+    animationFrameId = requestAnimationFrame(animateFullBodyReplay);
+
+    if (!replayEnabled) {
+        cancelAnimationFrame( animationFrameId );
+        return;
+    }
+
+    replayDelta += replayClock.getDelta();
+
+    if (replayDelta  > replayInterval) {
+        if (currentDataIndex === 0) {
+            updateFullBodyGeometry(currentBodyData[0]);
+            currentDataIndex++;
+        } else if (currentDataIndex >= currentBodyData.length) {            
+            currentDataIndex = 0;
+            startTime = replayClock.getElapsedTime() * 1000;
+        } else {
+            currentTime = replayClock.getElapsedTime() * 1000;
+            var currentFullBody = currentBodyData[currentDataIndex];
+            
+            elapsedTime = (currentTime - startTime) + timeOffset;
+            if (elapsedTime > currentFullBody.time) {
+                //clearReplayCanvas();
+                updateFullBodyGeometry(currentFullBody);
+                currentDataIndex++;
+            }
+        }
+
+        replayDelta = replayDelta % replayInterval;
+    }
+
+    replayRenderer.render(replayScene, replayCamera);
+}
+
 function startHandsReplayAnimation() {
-    clearReplayCanvas()
+    clearReplayCanvas();
     replayScene.add(jointsGroup);
-    animateHandsReplay()
+    animateHandsReplay();
+}
+
+function startFullBodyReplayAnimation() {
+    clearReplayCanvas();
+    replayScene.add(jointsGroup);
+    animateFullBodyReplay();
 }
 
 function createHandJointsGeometry(handJoints) {
     //clearReplayCanvas();
+    replayEnabled = true;
     if (handJoints.length === 0) return;
     initialiseHandJointsGeometry();
 
     startTime = replayClock.getElapsedTime() * 1000;
     currentTime = startTime;
     currentData = handJoints;
-    timeOffset = handJoints[0].time;    
+    timeOffset = handJoints[0].time;
+    currentDataIndex = 0;    
 
     startHandsReplayAnimation();
+}
+
+function createBodyJointsGeometry(bodyJoints) {
+    //clearReplayCanvas();
+    replayEnabled = true;
+    if (bodyJoints.length === 0) return;
+    initialiseFullBodyJointsGeometry();
+    startTime = replayClock.getElapsedTime() * 1000;
+    currentTime = startTime;
+    currentBodyData = bodyJoints;
+    timeOffset = bodyJoints[0].time;    
+    currentDataIndex = 0;
+
+    startFullBodyReplayAnimation();
 }
 
 function clearReplayCanvas() {
@@ -273,5 +427,11 @@ function clearReplayCanvas() {
     replayRenderer.render(replayScene, replayCamera);
 }
 
+function stopReplayAnimation() {
+    clearReplayCanvas();
+    replayEnabled = false;
+}
+
 window.createHandJointsGeometry = createHandJointsGeometry;
 window.clearReplayCanvas = clearReplayCanvas;
+window.stopReplayAnimation = stopReplayAnimation;

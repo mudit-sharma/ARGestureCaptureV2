@@ -12,30 +12,40 @@ let currentState = states.IDLE;
 let initTimer = new Date();
 let sampleData = "";
 let predictionStack = [];
-let recordDataStack = [];
+let bodyJoints = [];
 let intervalID = null;
 const months = ["JAN", "FEB", "MAR","APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+const recordingStartDelay = 3;
 let buidInProcess = false;
 
 let drawSkeleton = true;
 
-///////////////////////////////////////////////////////// Back-end communication ///////////////////////////////////////////////////////
 var worker = new Worker('../../js/worker.js');
-function toggleRecording() {
-  if ($("#recordButton") != null) {
-    if ($("#recordButton").hasClass("recordButton-inactive")) {
-      $("#recordButton").removeClass("recordButton-inactive");
-      $("#recordButton").addClass("recordButton-active");
-      $("#recordButton").text("Stop");
 
+async function toggleRecording() {
+  let recordButton = $("#recordButton");
+  if (recordButton != null) {
+    if (recordButton.hasClass("recordButton-inactive")) {
+
+      // Start timer here:
+      recordButton.css("display",'none');
+      await startTimer(recordingStartDelay);
+
+      recordButton.css("display",'');
+      recordButton.removeClass("recordButton-inactive");
+      recordButton.addClass("recordButton-active");
+      recordButton.text("Stop");
+      
+      // When timer finishes:
       startLog();
       currentState = states.RECORDING;
       
       console.log("Starting Recording!");
-    } else if ($("#recordButton").hasClass("recordButton-active")){
-      $("#recordButton").removeClass("recordButton-active");
-      $("#recordButton").addClass("recordButton-inactive");
-      $("#recordButton").text("Record");
+    } else if (recordButton.hasClass("recordButton-active")){
+      recordButton.removeClass("recordButton-active");
+      recordButton.addClass("recordButton-inactive");
+      recordButton.text("Record");
 
       buildLog($("#dataOverlay").attr('class'));
       currentState = states.IDLE;
@@ -73,7 +83,9 @@ function buildLog(actionName) {
         data.bodydata.Body.push({
           time: predictionStack[i][0],
           keypoints: predictionStack[i][3]
-        });          
+        });
+        
+        bodyJoints.push({time: predictionStack[i][0], Lkeypoints: predictionStack[i][1], Rkeypoints: predictionStack[i][2], Bodykeypoints: predictionStack[i][3]})
       }
       stopLog(data);
       predictionStack = [];
@@ -118,9 +130,12 @@ function stopLog(parsedData) {
 
   $.post("/results/fullbody/", {dirName: directoryName, data: parsedData}, function (data, status, jqXHR) {
       if (status == 'success') {
-        console.log(parsedData);
-        console.log("Data sent to server successfully!");        
-        addNewRecording();
+        //console.log(parsedData);
+        console.log("Data sent to server successfully!");
+        finishRecording(false,bodyJoints);
+        bodyJoints = [];
+        // addNewRecording();
+        // createBodyJointsGeometry(bodyJoints);
       } else {
         console.log("Data sent to server failed.");
       }
@@ -155,7 +170,6 @@ function getFormattedDateTime(dt = Date){
       dt.getMinutes() + "-" + 
       dt.getSeconds();
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function toggleDrawSkeleton(checkbox) {
   if(checkbox.checked){

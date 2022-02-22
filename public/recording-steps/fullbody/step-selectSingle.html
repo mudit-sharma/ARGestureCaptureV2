@@ -33,11 +33,11 @@
         <p>Interaction description here.</p>
 
         <div style="display: inline-block;">
-            <label>
+            <label style="display: none;">
                 <input type="checkbox" id="toggleDrawHandsBox" onclick="toggleDrawSkeleton(this)" checked>
                 Show body skeleton
             </label>
-            <label>
+            <label style="display: none;">
                 <input type="checkbox" id="toggleDrawDataBox" onclick="toggleDrawData(this)" checked>
                 Show reference animation
             </label>
@@ -52,9 +52,10 @@
                             style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
                     </div>
                 </div>
-                <div id="replayOverlay" width="640px" height="500px"></div>
+                <div id="replayOverlay" width="640px" height="500px" style="display: none;"></div>
                 <div id="dataOverlay" class="data-selectSinglePoint" width="640px" height="500px"></div>
             </div>
+            
             <div>
                 <span>
                     Recording under participant ID:
@@ -69,7 +70,17 @@
                 <span id="recorded-data-selectSinglePoint">                    
                 </span>
                 <br><br>
-                <a id="recordButton" class="recordButton-inactive button-19" role="button" onclick="toggleRecording()">Record</a>           
+                <div>
+                    <span id="recordingStatus">Press Record button to start a new recording.</span>
+                    <span id="recordingTimer" style="font-size: 25pt; display: none;">5</span>
+                </div>
+                <br><br>
+                <div>
+                    <a id="recordButton" class="recordButton-inactive button-19" role="button" onclick="toggleRecording()">Record</a>
+                    <a id="retryButton" class="recordButton-inactive button-20" style="display:none;" role="button" onclick="retryRecording()">Retry</a>
+                    <a id="acceptButton" class="recordButton-inactive button-21" style="display:none;" role="button" onclick="acceptRecording()">Save</a>
+                </div>           
+                <a id="nextButton" class="button-19" style="margin-top: 10px; display:none; align-self: end;" role="button" href="../../contacts.html">Next Gesture</a>                         
             </div>
             
         </div>    
