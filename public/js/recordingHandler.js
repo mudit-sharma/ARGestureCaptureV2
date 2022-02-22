@@ -93,7 +93,25 @@ function acceptRecording() {
 
     stopReplayAnimation();
     addNewRecording();
-    checkRecordingCount()
+    checkRecordingCount();
+}
+
+function failedRecording() {
+    statusElement.text("No data to record, please try again!");
+    recordButton.css("display",'');
+    acceptButton.css("display","none");
+    retryButton.css("display","none");
+    replayOverlayElement.css("display","none");
+    checkRecordingCount();
+}
+
+function emptyRecording() {
+    statusElement.text("No data to record, please try again!");
+    recordButton.css("display",'');
+    acceptButton.css("display","none");
+    retryButton.css("display","none");
+    replayOverlayElement.css("display","none");
+    checkRecordingCount();
 }
 
 function checkRecordingCount() {

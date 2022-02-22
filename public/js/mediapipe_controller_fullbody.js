@@ -15,8 +15,7 @@ let predictionStack = [];
 let bodyJoints = [];
 let intervalID = null;
 const months = ["JAN", "FEB", "MAR","APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-
-const recordingStartDelay = 3;
+const recordingStartDelay = 5;
 let buidInProcess = false;
 
 let drawSkeleton = true;
@@ -100,7 +99,7 @@ function startLog() {
 }
 
 // Stop recording gesture cordinates.
-function stopLog(parsedData) {
+async function stopLog(parsedData) {
 
   // if (parsedData.handdata.LHand.length <= 0 && parsedData.handdata.RHand.length <= 0) {
   //     $('#responseStatus').css('display', 'inline-block');
@@ -123,22 +122,34 @@ function stopLog(parsedData) {
 
   if (parsedData.bodydata.LHand.length <= 0 && parsedData.bodydata.RHand.length <= 0 && parsedData.bodydata.Body.length <= 0) {
     console.log('There are no data in recorded clip to save!');
+    emptyRecording();
     return;
   }
 
   const directoryName = `${parsedData.operation}/` + cachedUserId;
+  $("#recordButton").text("Saving...");
+  try {
+    await sendFullbodyGestureToServer(directoryName,parsedData);
+  } catch {
+    $("#recordButton").text("Record");
+  }
+}
 
-  $.post("/results/fullbody/", {dirName: directoryName, data: parsedData}, function (data, status, jqXHR) {
-      if (status == 'success') {
-        //console.log(parsedData);
-        console.log("Data sent to server successfully!");
-        finishRecording(false,bodyJoints);
-        bodyJoints = [];
-        // addNewRecording();
-        // createBodyJointsGeometry(bodyJoints);
-      } else {
-        console.log("Data sent to server failed.");
-      }
+async function sendFullbodyGestureToServer(directoryPath,parsedData) {
+  $.post("/results/fullbody/", {dirName: directoryPath, data: parsedData}, function (data, status, jqXHR) {
+    if (status == 'success') {
+      //console.log(parsedData);
+      console.log("Data sent to server successfully!");
+      finishRecording(false,bodyJoints);
+      bodyJoints = [];
+      $("#recordButton").text("Record");
+      // addNewRecording();
+      // createBodyJointsGeometry(bodyJoints);
+    } else {
+      console.log("Data sent to server failed.");
+      failedRecording();
+      $("#recordButton").text("Record");
+    }
   });
 }
 

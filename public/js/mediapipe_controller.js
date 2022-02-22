@@ -15,27 +15,35 @@ let predictionStack = [];
 let handJoints = [];
 let intervalID = null;
 const months = ["JAN", "FEB", "MAR","APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+const recordingStartDelay = 3;
 let buidInProcess = false;
 
 let drawSkeleton = true;
 
-///////////////////////////////////////////////////////// Back-end communication ///////////////////////////////////////////////////////
 var worker = new Worker('../../js/worker.js');
-function toggleRecording() {
-  if ($("#recordButton") != null) {
-    if ($("#recordButton").hasClass("recordButton-inactive")) {
-      $("#recordButton").removeClass("recordButton-inactive");
-      $("#recordButton").addClass("recordButton-active");
-      $("#recordButton").text("Stop");
+async function toggleRecording() {
+  let recordButton = $("#recordButton");
+  if (recordButton != null) {
+    if (recordButton.hasClass("recordButton-inactive")) {
 
+      // Start timer here:
+      recordButton.css("display",'none');
+      await startTimer(recordingStartDelay);
+
+      recordButton.css("display",'');
+      recordButton.removeClass("recordButton-inactive");
+      recordButton.addClass("recordButton-active");
+      recordButton.text("Stop");
+      
+      // When timer finishes:
       startLog();
       currentState = states.RECORDING;
       
       console.log("Starting Recording!");
-    } else if ($("#recordButton").hasClass("recordButton-active")){
-      $("#recordButton").removeClass("recordButton-active");
-      $("#recordButton").addClass("recordButton-inactive");
-      $("#recordButton").text("Record");
+    } else if (recordButton.hasClass("recordButton-active")){
+      recordButton.removeClass("recordButton-active");
+      recordButton.addClass("recordButton-inactive");
+      recordButton.text("Record");
 
       buildLog($("#dataOverlay").attr('class'));
       currentState = states.IDLE;
@@ -101,7 +109,7 @@ function startLog() {
 }
 
 // Stop recording gesture cordinates.
-function stopLog(parsedData) {
+async function stopLog(parsedData) {
 
   // if (parsedData.handdata.LHand.length <= 0 && parsedData.handdata.RHand.length <= 0) {
   //     $('#responseStatus').css('display', 'inline-block');
@@ -124,20 +132,34 @@ function stopLog(parsedData) {
 
   if (parsedData.bodydata.LHand.length <= 0 && parsedData.bodydata.RHand.length <= 0) {
     console.log('There are no data in recorded clip to save!');
+    emptyRecording();
     return;
   }
 
   const directoryName = `${parsedData.operation}/` + cachedUserId;
+  $("#recordButton").text("Saving...");
+  try {
+    await sendHandsGestureToServer(directoryName,parsedData);
+  } catch {
+    $("#recordButton").text("Record");
+  }
+}
 
-  $.post("/results/hands/", {dirName: directoryName, data: parsedData}, function (data, status, jqXHR) {
-      if (status == 'success') {
-        console.log("Data sent to server successfully!");        
-        addNewRecording();
-        createHandJointsGeometry(handJoints);
-        handJoints = [];
-      } else {
-        console.log("Data sent to server failed.");
-      }
+async function sendHandsGestureToServer(directoryPath,parsedData) {
+  $.post("/results/hands/", {dirName: directoryPath, data: parsedData}, function (data, status, jqXHR) {
+    if (status == 'success') {
+      //console.log(parsedData);
+      console.log("Data sent to server successfully!");
+      finishRecording(true,handJoints);
+      handJoints = [];
+      $("#recordButton").text("Record");
+      // addNewRecording();
+      // createBodyJointsGeometry(bodyJoints);
+    } else {
+      console.log("Data sent to server failed.");
+      failedRecording();
+      $("#recordButton").text("Record");
+    }
   });
 }
 
