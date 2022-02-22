@@ -1305,14 +1305,17 @@ function selectLasso() {
  */
 function init() {
     switch (visualisationName) {
-        case 'data-selectRange':
-            selectRange();
-            break;
         case 'data-selectSinglePoint':
             selectSinglePoint();
             break;
+        case 'data-selectMultiple':
+            selectMultiple();
+            break;
         case 'data-selectCluster':
             selectCluster();
+            break;
+        case 'data-selectRange':
+            selectRange();
             break;
         case 'data-zoom':
             zoom();
@@ -1322,9 +1325,6 @@ function init() {
             break;
         case 'data-rotate':
             rotate();
-            break;
-        case 'data-selectMultiple':
-            selectMultiple();
             break;
         case 'data-selectAxis':
             selectAxis();
@@ -1339,7 +1339,7 @@ function init() {
             selectLasso();
             break;
     }
-    console.log(visualisationName);
+    console.log(`Current visualisation mode: ${visualisationName}.`);
 }
 
 onWindowResize();

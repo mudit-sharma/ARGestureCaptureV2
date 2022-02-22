@@ -116,7 +116,9 @@ function emptyRecording() {
 
 function checkRecordingCount() {
     if (recordedCount >= mininumRecordings) {
-        nextButton.css("display",'');
+        nextButton.css("pointer-events",'');
+        nextButton.removeClass("button-22");
+        nextButton.addClass("button-19");
     }
 }
 

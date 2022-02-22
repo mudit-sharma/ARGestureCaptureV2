@@ -4,3 +4,5 @@ npm-debug.log
 .nyc
 .env
 .DS_Store
+results/hands/data-highlightSelection/Len/data-highlightSelection_0_JSON.json
+results/
