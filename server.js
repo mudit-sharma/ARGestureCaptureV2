@@ -10,15 +10,10 @@ const app = express();
 const port = process.env.PORT || 8080;
 
 var router = express.Router();
-app.use(bodyParser.json())
 app.use(express.static('public')); // static directory access to "public" directory (css, js, etc.).
 
-app.use(bodyParser.text());
-app.use(bodyParser.urlencoded({
-  parameterLimit: 100000,
-  limit: '50mb',
-  extended: true
-}));
+app.use(bodyParser.json({limit: "50mb"}));
+app.use(bodyParser.urlencoded({limit: "50mb", extended: true, parameterLimit:1000000}));
 
 //site variables
 const appInfo = {
