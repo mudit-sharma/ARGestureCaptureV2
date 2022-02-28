@@ -15,7 +15,7 @@ let predictionStack = [];
 let handJoints = [];
 let intervalID = null;
 const months = ["JAN", "FEB", "MAR","APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-const recordingStartDelay = 1;
+const recordingStartDelay = 3;
 let buidInProcess = false;
 
 let drawSkeleton = true;
