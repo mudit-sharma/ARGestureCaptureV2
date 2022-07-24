@@ -52,7 +52,7 @@ async function startTimer(time) {
         remaining = remaining - 1;
     }
 
-    $("#dataOverlay").css("display","none");
+    $("#dataOverlay").css("display","");
 
     statusElement.text("Recording started! Press Stop to stop the recording process.");
     timerElement.css("display",'none');
